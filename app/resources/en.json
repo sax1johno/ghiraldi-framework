@@ -1,0 +1,7 @@
+{
+    "app-name": "Your app name goes here",
+    "Welcome to Ghiraldi!": "Welcome to Ghiraldi!",
+    "Welcome message": "If you're reading this, you've successfully set up your Ghiraldi project.  Feel free to wipe out this app folder and create your own project here.",
+    "Apps as submodules": "In Ghiraldi, apps and plugins are managed as Git submodules.  Any app can also be a plugin (although there are some guidelines).",
+    "Change your settings": "You can change your app settings in the config.json file."
+}

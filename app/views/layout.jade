@@ -1,0 +1,12 @@
+!!!
+html
+    head
+        title #{x('app-name')}
+        block css
+            link(rel='stylesheet', href='/css/style.css', type="text/css", media="screen")
+        block scripts
+            script(type="text/javascript", src="/js/base.js")
+    body
+        block messages
+        block content
+    block userScripts

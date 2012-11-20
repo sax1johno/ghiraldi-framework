@@ -1,0 +1,6 @@
+{"ts":1353111294192,"silentsave":true,"restoring":false,"patch":[[]],"length":0}
+{"contributors":[],"silentsave":false,"ts":1353111377220,"patch":[[{"diffs":[[1,"extends layout\n\nblock content\n    h1 Congrats! You've created your first #{title} app.\n    p Ghiraldi is a new MVC framework for node.js.  Please feel free to contribute to the project on\n        a(href=\"\") github\n        "]],"start1":0,"start2":0,"length1":0,"length2":222}]],"length":222,"saved":false}
+{"ts":1353111572916,"patch":[[{"diffs":[[0,"rst "],[-1,"#{title}"],[1,"Ghiraldi"],[0," app"]],"start1":69,"start2":69,"length1":16,"length2":16}]],"length":222,"saved":false}
+{"ts":1353111631092,"patch":[[{"diffs":[[0,"oject on"],[1," "],[0,"\n       "]],"start1":179,"start2":179,"length1":16,"length2":17}]],"length":223,"saved":false}
+{"ts":1353111684122,"patch":[[{"diffs":[[0,"r first "],[-1,"Ghiraldi"],[1,"#{title}"],[0," app.\n  "]],"start1":65,"start2":65,"length1":24,"length2":24}]],"length":223,"saved":false}
+{"ts":1353115117197,"patch":[[{"diffs":[[0,") github"],[-1,"\n        "]],"start1":206,"start2":206,"length1":17,"length2":8}]],"length":214,"saved":false}
