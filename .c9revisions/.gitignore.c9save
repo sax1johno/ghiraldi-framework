@@ -1,2 +1,5 @@
 {"ts":1353115145511,"silentsave":true,"restoring":false,"patch":[[]],"length":0}
 {"contributors":[],"silentsave":false,"ts":1353115150794,"patch":[[{"diffs":[[1,"node_modules/*"]],"start1":0,"start2":0,"length1":0,"length2":14}]],"length":14,"saved":false}
+{"contributors":[],"silentsave":false,"ts":1353436913973,"patch":[[{"diffs":[[0,"odules/*"],[1,"\n.c9revisions"]],"start1":6,"start2":6,"length1":8,"length2":21}]],"length":27,"saved":false}
+{"ts":1353436915975,"patch":[[{"diffs":[[0,"evisions"],[1,"/*"]],"start1":19,"start2":19,"length1":8,"length2":10}]],"length":29,"saved":false}
+{"ts":1353436928209,"patch":[[{"diffs":[[0,"evisions"],[-1,"/*"]],"start1":19,"start2":19,"length1":10,"length2":8}]],"length":27,"saved":false}
