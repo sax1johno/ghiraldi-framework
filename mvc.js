@@ -113,6 +113,9 @@ function bootConfig(app, completeFn) {
     // some static view helpers
     app.use(require(__dirname + appSettings.helpers));
   }  
+  if (appSettings.helpers !== null && appSettings.helpers !== undefined) {
+        app.use(require(__dirname + appSettings.helpers));
+  }
 //  if (appSettings.dynamicHelpers !== null && appSettings.dynamicHelpers !== undefined) {
 //    // Some dynamic view helpers
 //    app.dynamicHelpers(require(__dirname + appSettings.dynamicHelpers));
