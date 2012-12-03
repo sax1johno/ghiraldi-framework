@@ -1,8 +1,11 @@
-
+/**
+ * This is the lightweight app.js file that runs your new express-powered Ghiraldi app.
+ * Run this to run your entire application.
+ **/
+ 
 /**
  * Module dependencies.
  */
-
 var express = require('express');
 
 var app = express();

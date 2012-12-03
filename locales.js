@@ -1,3 +1,10 @@
+/**
+ * Locales.js is a locale manager for the Ghiraldi framework.  It checks the Accept-Language request header
+ * and attempts to use the language string found there.  It defaults to generic english (although this can be overridden
+ * in the app).
+ * 
+ * Locales are defined in the resources/<lang>.json file, where <lang> is the language code.
+ **/
 var _ = require('underscore'),
     defaultLocale = 'en',
     appPlugin = 'app',
@@ -190,6 +197,17 @@ function guessLanguage(request) {
   }
 }
 
+/**
+ * Exports the following methods:
+ * defaultLocale: the default locale - can be overridden in the app.
+ * appPlugin: The name of the folder for this application - use only if the app folder has been changed.
+ * xlate: The verbose translate method.
+ * x: The default translate method that uses the current language and app plugin. Use this unless you need to do something custom.
+ * setLocale: Sets the current locale.
+ * TranslationObject: Can use this to get the object that stores all of the locales available in this framework (including
+ *                      from plugins).  Typically used for debugging.
+ * init: alize the locales.js extension.
+ **/
 module.exports = {
     defaultLocale: defaultLocale,
     appPlugin: appPlugin,

@@ -1,37 +1,48 @@
-
 /**
- * Framework dependencies - required for features.
+ * mvc.js
+ * @author John O'Connor
+ * This file contains the bulk of the Ghiraldi framework.  It bootstraps the controllers, models, data sources, configuration
+ * and other parts of the application.
+ * 
+ * You should not change anything in this file unless you know what you're doing.  Seriously - here be dragons.
+ **/
+ 
+/**
+ * Framework dependencies
  */
-
 var fs = require('fs'), 
     express = require('express'),
-    vm = require('vm'),
     _ = require('underscore'),
-    pkg = require('./package'),
     locales = require('./locales');
-    
-require('coffee-script');
-  
-// var mongoose = 
 
+require('coffee-script');
+
+/**
+ * Basic variables used during bootstrapping.
+ **/
 var status = false,
     port = process.env.PORT,
     errors,
     config;
 
+/**
+ * The main boot function.  This boots the application and catches all startup errors.
+ * @param app, the app provided by express.js
+ * @param completeFn the method to be executed when the bootstrap is completed.
+ * @author John O'Connor
+ **/
 exports.boot = function(app, completeFn){
-//    // console.log("Booting Ghiraldi");
     try {
         bootFramework(app, function() {
-             console.log("Framework booted");
+            console.log("Framework booted");
             bootConfig(app, function() {
-                 console.log("config booted");
+                console.log("config booted");
                 bootData(app, function() {
-                     console.log("data booted");
+                    console.log("data booted");
                     bootPlugins(app, function() {
                          console.log("Plugins booted");
                         bootApp(app, function() {
-                             console.log("Done booting application");
+                            console.log("Done booting application");
                             completeFn({
                                 status: true,
                                 port: port
@@ -51,22 +62,26 @@ exports.boot = function(app, completeFn){
     }
 };
 
-// App settings and middleware
-
+/**
+ * Sets up the express app, with the default ghiraldi app middleware and base settings.
+ * These need to be made more dynamic, but for now it works.
+ * @param app the express.js app.
+ * @param completeFn The function that executes once framework boot is complete.
+ **/
 function bootFramework(app, completeFn) {
   // console.log("Booting framework");
   app.use(express.logger(':method :url :status'));
     
-  app.use(express.bodyParser({uploadDir: __dirname + '/public/files'}));
+  app.use(express.bodyParser({uploadDir: __dirname + '/app/public/files'}));
   
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   
   app.use(express.session({ secret: '8y3l138ut13je31r13sad13vs8h3ety3r8t13w8weyhel' }));
-  app.use(require(__dirname + '/helpers.js'));
+  app.use(require(__dirname + '/app/helpers.js'));
 
   app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
+  app.use(express.static(__dirname + '/app/public'));
   
   app.use(locales.init);
 
@@ -75,8 +90,13 @@ function bootFramework(app, completeFn) {
     completeFn();
 }
 
+/**
+ * Reads the config.json file and performs additional dynamic app configuration.
+ * @param app the express.js application.
+ * @param completeFn a function that executes upon completion of the boot process.
+ **/
 function bootConfig(app, completeFn) {
-  config = require(__dirname + '/config.json');
+  config = require(__dirname + '/app/config.json');
   
   var environment = process.env.NODE_ENV;
   if (_.isUndefined(environment) || _.isNull(environment)) {
@@ -116,6 +136,7 @@ function bootConfig(app, completeFn) {
   if (appSettings.helpers !== null && appSettings.helpers !== undefined) {
         app.use(require(__dirname + appSettings.helpers));
   }
+  // Removed in Express 3.0 - generic helpers are now used instead.
 //  if (appSettings.dynamicHelpers !== null && appSettings.dynamicHelpers !== undefined) {
 //    // Some dynamic view helpers
 //    app.dynamicHelpers(require(__dirname + appSettings.dynamicHelpers));
@@ -129,8 +150,9 @@ function bootConfig(app, completeFn) {
 }
 
 /**
- * Boots up the framework with this application.
- * @param app the application server.
+ * Boots the application being developed with the framework.
+ * @param app a reference to the express.js application.
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootApp(app, completeFn) {
      console.log("Booting the app");
@@ -154,11 +176,12 @@ function bootApp(app, completeFn) {
 }
 
 /**
- * Boots up the framework with the project plugins.
- * @param app the application server.
+ * Boots up the project plugins.
+ * @param app the express.js application.
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootPlugins(app, completeFn) {
-    fs.readdir(__dirname + '/plugins', function(err, plugins) {
+    fs.readdir(__dirname + '/app/plugins', function(err, plugins) {
         if (err) { 
             // console.log("There was an error: " + err);
             completeFn(); 
@@ -174,9 +197,9 @@ function bootPlugins(app, completeFn) {
                 completeFn();
             } else {
                 plugins.forEach(function(plugin) {
-                    bootModels(app, __dirname + '/plugins/' + plugin, function() {
-                        bootResources(app, __dirname + '/plugins/' + plugin, function() {
-                            bootControllers(app, __dirname + '/plugins/' + plugin, function() {
+                    bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
+                        bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
+                            bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
                                 pluginIndex--;
                                 // console.log("Plugin index = " + pluginIndex);
                                 if (pluginIndex <= 0) {
@@ -194,6 +217,7 @@ function bootPlugins(app, completeFn) {
 /** Boots up the framework with the resources for this project.
  * @param app the application server.
  * @param basedir the base directory for the resources.
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootResources(app, basedir, completeFn) {
     if (locales === null || locales === undefined) {
@@ -223,6 +247,7 @@ function bootResources(app, basedir, completeFn) {
  * Boot up the framework with the models found in basedir.
  * @param app the application server.
  * @param basedir the base directory for the models.
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootModels(app, basedir, completeFn) {
     fs.readdir(basedir + '/models', function(err, files) {
@@ -255,7 +280,9 @@ function bootModels(app, basedir, completeFn) {
 
 /**
  * Boots a model into the application framework.
+ * @internal
  * @param app the application server.
+ * @param basedir the base directory of the models.
  * @param file the file containing the data model.
  **/
 function bootModel(app, basedir, file) {
@@ -269,6 +296,7 @@ function bootModel(app, basedir, file) {
  * Boot up the framework with the controllers found in basedir.
  * @param app the application server.
  * @param basedir the base directory that contains the controllers
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootControllers(app, basedir, completeFn) {
   fs.readdir(basedir + '/controllers', function(err, files){
@@ -296,8 +324,9 @@ function bootControllers(app, basedir, completeFn) {
 }
 
 /**
- * Boot data into the framwork using the config.json configuration file.  Currently only supports mongodb
+ * Boot data into the framwork using the config.json configuration file.  Currently only supports mongodb.
  * @param app the application server
+ * @param completeFn a function to be executed when booting is complete.
  **/
 function bootData(app, completeFn) {
     if (!_.isUndefined(config.data) && !_.isNull(config.data)) {
@@ -327,6 +356,7 @@ function bootData(app, completeFn) {
 /**
  * Boot a controller into the framework.
  * @param app the application server
+ * @basedir the base directory for the controllers - used to distinguish plugins from app.
  * @param file the controller file
  **/
 function bootController(app, basedir, file, completeFn) {
@@ -404,9 +434,11 @@ function routeAction(route, fn) {
     };
 }
 
-/* Note: the rest of this stuff should go in a library somewhere. */
+/* Note: the rest of this stuff should eventually go in a library somewhere. Perhaps when I have the time */
 /**
  * Walk a directory tree and return the files in that tree.
+ * @param dir the directory to be walked.
+ * @param done a function that executes once file walking is complete with the signaure done(err, [files])
  **/
 var walk = function(dir, done) {
     var results = [];

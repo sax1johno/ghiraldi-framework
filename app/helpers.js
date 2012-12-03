@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var locales = require('./locales');
+var locales = require('../locales');
 var markdown = require('markdown').markdown
 
 var navActive = function(req, res, next) {
