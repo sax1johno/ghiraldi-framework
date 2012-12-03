@@ -1,12 +1,14 @@
 /**
  * Locales.js is a locale manager for the Ghiraldi framework.  It checks the Accept-Language request header
  * and attempts to use the language string found there.  It defaults to generic english (although this can be overridden
- * in the app).
+ * in the app configuration).
  * 
  * Locales are defined in the resources/<lang>.json file, where <lang> is the language code.
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * Copyright (C) 2012, John O'Connor
  * 
  **/
 var _ = require('underscore'),
