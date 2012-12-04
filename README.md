@@ -10,33 +10,30 @@ Ghiraldi (pronounced "gear-ahl-dee') is a component-based MVC framework for node
 
 # What is Ghiraldi?
 Perhaps I should start with what Ghiraldi ISN'T.
-* Ghiraldi is NOT a rails clone.  I took what I consider that to be the best parts of Django, RAILS, javascript, grails, and others.
-* Ghrialdi is NOT a rapid application development platform, although apps can be developed very quickly using Ghiraldi.  The focus of Ghiraldi is more on writing modular, larger web applications using Node.js.
+* Ghiraldi is NOT a rails clone.  It is a combination of the best parts of Django, RAILS, javascript, grails, and others.
+* Ghrialdi is NOT a rapid application development platform, although apps can be developed very quickly using Ghiraldi.  The focus of Ghiraldi is writing modular, component-based, large web applications using Node.js.
 * Ghiraldi is NOT just another MVC framework.  While applications are build using an MVC architecture, Ghrialdi is more interested in building reusable component blocks (called plugins).  Specifically, any application can become a plugin by naming it correctly and putting in the "plugins" directory of your application.
 
 __So, what IS Ghiraldi?__
 Ghiraldi is a modular framework for developing big web apps in node.js.  With that goal in mind, Ghiraldi was designed to encourage creating small, testable modules and connecting
-them together in infinitely complex ways.  Modules, and even entire apps, are easy to re-use and re-purpose.  Modules are all self contained - even routes are defined in
-the controller level of your applications.
+them together in infinitely complex ways.  Modules, and even entire apps, are easy to re-use and re-purpose.
 
-Ghrialdi attempts to strike a balance between magic and traceability - it provides just enough magic to make development substantially faster and easier, but not 
-so much that you have to find workarounds just to overcome the magical parts of the framework.
+Ghrialdi attempts to strike a balance between convention and configuration - it provides just enough magic to make development substantially faster and easier, but not 
+so much that you have to find workarounds to solve basic problems outside the confines of the original framework design.
 
 Some of its features are the following:
 * MVC application architecture with plugins for extending functionality.
-* All apps can become plugins - in fact, placing an app in the plugins directory with a name and version number loads it as a plugin.
+* All apps can become plugins - placing an app in the plugins directory with a name and version number loads it as a plugin.
 * Built on Express.js and you can use any express, connect, or node.js middleware / modules with ease.
-* Routes are defined at the controller-level for modular routing at the component level.
-* Controllers can be written in coffee-script or javascript - just add your controller file with a .coffee extension to the controllers directory and Ghiraldi will automatically pick it up.
+* Controller-defined routes for extending application functionality without cluttering up your routes file.
+* Like a little extra caffeine? Write apps in coffeescript or javascript.
 * Views can be written in any view technology supported by express.  The default is JADE, but you can configure any other.
 
 # Anatomy of a Ghiraldi app
 A ghiraldi app consists of three different layers:
 
 1. The framework layer consists of the main application bootstrap code, package definition information, and a locales extension.
-
 2. The application layer contains your application which is built on the Ghiraldi framework.
-
 3. Within the application layer is the plugin layer.  Plugins are other applications that are bootstrapped along with your application and extend its functionality.
 
 Structurally, all framework files are contained within the base directory.
