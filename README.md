@@ -49,7 +49,7 @@ README.md             - The README markdown file for Ghiraldi (you're probably r
 app                   - This directory contains all of the components of your application.  Default is the Rosetta app.
     controllers        - The controllers for your application. This contains all of the logic for your application components.
     models             - The data models for your application.  Modules that represent data to be stored in a database go here.
-    plugins            - The plugins that your application uses.  Each of these will most likely be git submodules for other applications you use.
+    plugins            - The plugins that your application uses.  Each app can also become a plugin by placing it in a directory under "plugins" with "plugin_name-1.0.0", with the name of the plugin before the dash and the version number after the dash.
     public             - The public files served by your application.  They are automatically routed to their directory names (ie: /js maps to the js directory, /img maps to the img directory, etc).
     resources          - Locale resources - this contains all of the locale strings and files for your app.
         en.js          - The English-language locale strings, stored as key-value pairs.  Key is used to access a string across languages, and value is the value of that key in this language (for en.js, in english).
@@ -146,28 +146,28 @@ Ghiraldi apps provide some time-saving conventions while ensuring that you never
 Ghiraldi apps have the following structural conventions.  Conventions that are enforced by the framework are marked "required".
 Those that can be overridden using configuration are marked with a "configurable".
 Those that are not enforced but recommended are marked "optional".
-
-1. models
+```
+models
     REQUIRED: all application models must be stored in a directory named "models".
-2. controllers
+controllers
     REQUIRED: all application controllers must be stored in the directory named "controllers"
-3. views
+views
     CONFIGURABLE: The default is the "views" directory, but this can be changed in the appSettings object in config.json.
-4. public
+public
     CONFIGURABLE: The default is the "public" directory in your app, but this can be changed in config.json.
-5. resources
+resources
     REQUIRED: If you decide to use the locales.js plugin, you must put your language resources in the "resources" directory in your app.
-6. plugins
+plugins
     REQUIRED: If you have any plugins you'd like to use in your app, they must go in the plugins directory.
-7. tests
+tests
     OPTIONAL: Tests are encouraged, but you can place them in any folder you'd like.  Ghiraldi does not include a testing framework by default (yet)
-8. utils
+utils
     OPTIONAL: This is a good place to store any classes that represent cross-cutting concerns (such as reusable middleware), but that are not necessarily controllers on their own.
-9. helpers.js
+helpers.js
     REQUIRED: If you have any helper functions you'd like to register, they must go in helpers.js.  This is a holdover from express 2.x and may go away.
-10. config.json
+config.json
     REQUIRED: Contains the configuration settings for your application.
-
+```
 #COPYRIGHT AND LICENSE
 Copyright (C) 2012, John O'Connor
 
