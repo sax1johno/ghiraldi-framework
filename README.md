@@ -15,7 +15,7 @@ If you're interested in working on the Ghiraldi framework, join my public develo
 Perhaps I should start with what Ghiraldi ISN'T.
 * Ghiraldi is NOT a rails clone.  It is a combination of the best parts of Django, RAILS, javascript, grails, and others.
 * Ghrialdi is NOT a rapid application development platform, although apps can be developed very quickly using Ghiraldi.  The focus of Ghiraldi is writing modular, component-based, large web applications using Node.js.
-* Ghiraldi is NOT just another MVC framework.  While applications are build using an MVC architecture, Ghrialdi is more interested in building reusable component blocks (called plugins).  Specifically, any application can become a plugin by naming it correctly and putting in the "plugins" directory of your application.
+* Ghiraldi is NOT just another MVC framework.  While applications are build using an MVC architecture, Ghrialdi is more interested in development using modular components and re-usable apps (called plugins).
 
 __So, what IS Ghiraldi?__
 Ghiraldi is a modular framework for developing big web apps in node.js.  With that goal in mind, Ghiraldi was designed to encourage creating small, testable modules and connecting
