@@ -57,17 +57,17 @@ app                   - This directory contains all of the components of your ap
 
 The app folder has the following structure:
 ```
-    controllers        - The controllers for your application. This contains all of the logic for your application components.
-    models             - The data models for your application.  Modules that represent data to be stored in a database go here.
-    plugins            - The plugins that your application uses.  Each of these will most likely be git submodules for other applications you use.
-    public             - The public files served by your application.  They are automatically routed to their directory names (ie: /js maps to the js directory, /img maps to the img directory, etc).
-    resources          - Locale resources - this contains all of the locale strings and files for your app.
-        en.js          - The English-language locale strings, stored as key-value pairs.  Key is used to access a string across languages, and value is the value of that key in this language (for en.js, in english).
-    tests              - Tests for your components go here.  NodeUnit is recommended, but any other testing framework should work fine.
-    utils              - Utilities that aren't specific to any one component.  This is a good place for utilities that address cross-cutting concerns.
-    views              - The views for your application.  Ghiraldi uses Jade by default, but you can configure it to use another.
-    config.json          - Your application configuration - all app configuration (and default overrides) goes here.
-    helpers.js           - A utility class to put app-wide middleware.
+controllers        - The controllers for your application. This contains all of the logic for your application components.
+models             - The data models for your application.  Modules that represent data to be stored in a database go here.
+plugins            - The plugins that your application uses.  Each of these will most likely be git submodules for other applications you use.
+public             - The public files served by your application.  They are automatically routed to their directory names (ie: /js maps to the js directory, /img maps to the img directory, etc).
+resources          - Locale resources - this contains all of the locale strings and files for your app.
+    en.js          - The English-language locale strings, stored as key-value pairs.  Key is used to access a string across languages, and value is the value of that key in this language (for en.js, in english).
+tests              - Tests for your components go here.  NodeUnit is recommended, but any other testing framework should work fine.
+utils              - Utilities that aren't specific to any one component.  This is a good place for utilities that address cross-cutting concerns.
+views              - The views for your application.  Ghiraldi uses Jade by default, but you can configure it to use another.
+config.json          - Your application configuration - all app configuration (and default overrides) goes here.
+helpers.js           - A utility class to put app-wide middleware.
 ```
 # QUICK START
 Ghiraldi provides a basic starting project (called "rosetta") that provides a good starting point for your apps.  It has some of the more common and useful patterns 
