@@ -46,15 +46,17 @@ A ghiraldi app consists of three different layers:
 3. Within the application layer is the plugin layer.  Plugins are other applications that are bootstrapped along with your application and extend its functionality.
 
 Structurally, all framework files are contained within the base directory.
-
-> app.js                - The core file to be run by node (ie: node app.js).  This bootstraps the framework and creates the express.js app.
-> locales.js            - An extension that allows ghiraldi to understand languages and locales.
-> mvc.js                - The core of the framework.  Bootstraps the entire application and handles app-wide middleware.
-> package.json          - The node.js package description for this application.
-> README.md             - The README markdown file for Ghiraldi (you're probably reading README now).
-> app                   - This directory contains all of the components of your application.  Default is the Rosetta app.
+```
+app.js                - The core file to be run by node (ie: node app.js).  This bootstraps the framework and creates the express.js app.
+locales.js            - An extension that allows ghiraldi to understand languages and locales.
+mvc.js                - The core of the framework.  Bootstraps the entire application and handles app-wide middleware.
+package.json          - The node.js package description for this application.
+README.md             - The README markdown file for Ghiraldi (you're probably reading README now).
+app                   - This directory contains all of the components of your application.  Default is the Rosetta app.
+```
 
 The app folder has the following structure:
+```
     controllers        - The controllers for your application. This contains all of the logic for your application components.
     models             - The data models for your application.  Modules that represent data to be stored in a database go here.
     plugins            - The plugins that your application uses.  Each of these will most likely be git submodules for other applications you use.
@@ -66,7 +68,7 @@ The app folder has the following structure:
     views              - The views for your application.  Ghiraldi uses Jade by default, but you can configure it to use another.
     config.json          - Your application configuration - all app configuration (and default overrides) goes here.
     helpers.js           - A utility class to put app-wide middleware.
-
+```
 # QUICK START
 Ghiraldi provides a basic starting project (called "rosetta") that provides a good starting point for your apps.  It has some of the more common and useful patterns 
 for writing Ghiraldi apps, including a template you can use for controllers, models, and configuration.  Rosetta is licensed under the liberal MIT license so you can use it
