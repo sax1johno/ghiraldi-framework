@@ -12,7 +12,7 @@ Ghiraldi (pronounced "gear-ahl-dee') is a component-based MVC framework for node
 
 7. [Some Conventions](#some-conventions)
 
-8. [Copyright and license](#copyright-and-license]
+8. [Copyright and license](#copyright-and-license)
 
 # What is Ghiraldi?
 Perhaps I should start with what Ghiraldi ISN'T.
