@@ -102,7 +102,7 @@ it will default to "development".
 Below is a rosetta code version of config.json that shows the possible default configuration overrides.
 (NOTE: All items are optional)
 
-`
+```javascript
 {
     "environment": "development",           // You can set the environment here. Otherwise, ghiraldi will look the NODE_ENV environment variable 
     "development": {                        // The settings for the development environment.
@@ -130,7 +130,7 @@ Below is a rosetta code version of config.json that shows the possible default c
     },
     ...
 }
-`
+```
 #URL Routes
 All controllers have a special export called "routes" that can add URL routes to your application.  Since controllers generally
 represent a single piece of system functionality, it made sense to us to define the routes for those functions in the 
