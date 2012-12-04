@@ -1,8 +1,5 @@
 Ghiraldi (pronounced "gear-ahl-dee') is a component-based MVC framework for node.js apps based on Express.js.
 
-# I'm on CLOUD9
-If you're interested in working on the Ghiraldi framework, join my public development workspace on Cloud9 (https://c9.io/sax1johno/ghiraldi-framework).
-
 1. [What is Ghiraldi](#what-is-ghiraldi)
 2. [Anatomy of a Ghiraldi App](#anatomy-of-a-ghiraldi-app)
 3. [Quick Start](#quick-start)
@@ -10,6 +7,9 @@ If you're interested in working on the Ghiraldi framework, join my public develo
 5. [URL Routes](#url-routes)
 6. [Some Conventions](#some-conventions)
 7. [Copyright and license](#copyright-and-license)
+
+# I'm on CLOUD9
+If you're interested in working on the Ghiraldi framework, join my public development workspace on Cloud9 (https://c9.io/sax1johno/ghiraldi-framework).
 
 # What is Ghiraldi?
 Perhaps I should start with what Ghiraldi ISN'T.
