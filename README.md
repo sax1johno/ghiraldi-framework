@@ -137,7 +137,7 @@ represent a single piece of system functionality, it made sense to us to define 
 same place that you develop those functions.
 
 The following is an example of the module.exports for a controller that defines routes:
-`
+```javascript
 var index = function(req, res, next) {
     res.send({"test": "this is a test"});
 }
@@ -161,6 +161,7 @@ module.exports = {         // The normal module.exports for a node.js module.
     ],
     ...     // Continue with other exports if necessary.
 }
+```
 
 #SOME CONVENTIONS
 Ghiraldi apps provide some time-saving conventions while ensuring that you never get lost in trying to overcome those conventions.
