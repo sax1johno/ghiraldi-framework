@@ -254,32 +254,59 @@ function bootResources(app, basedir, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootModels(app, basedir, completeFn) {
-    fs.readdir(basedir + '/models', function(err, files) {
-        if (err) { 
+      fs.readdir(basedir + '/models', function(err, files){
+        if (err) {
             completeFn();
-//            console.log("err = " + err);
-        } else if (_.isNull(files) || _.isUndefined(files)) {
-            completeFn();
-//            console.log("files is not defined or null");
-        } else if (files.length <= 0) {
-            completeFn();
-//            console.log("No files found");
         } else {
-            var filesIndex = files.length;
-            files.forEach(function(file) {
-//                console.log(file);
-                filesIndex--;
-                fs.stat(basedir + '/models/' + file, function(err, stats) {
-                    if (stats.isFile()) {
-                        bootModel(app, basedir, file);
-                    }
-                    if (filesIndex <= 0) {
-                        completeFn();
-                    }
-                });
-            });
+            if (!_.isNull(files) && !_.isUndefined(files)) {
+                if (files.length <= 0) {
+                    completeFn();
+                    console.log("no files found");
+                } else {
+//                    console.log("In files");
+                    var filesIndex = files.length;
+                    files.forEach(function(file){
+//                        console.log("files index = " + filesIndex);
+                        filesIndex--;
+                        bootModel(app, basedir, file, function() {
+                            if (filesIndex <= 0) {
+//                                console.log("files Index =  " + filesIndex);
+                                completeFn();
+                            }
+                        });
+                    });
+                }
+            };        
         }
     });
+//    fs.readdir(basedir + '/models', function(err, files) {
+//        if (err) { 
+//            completeFn();
+//            console.log("err = " + err);
+//        } else if (_.isNull(files) || _.isUndefined(files)) {
+//            completeFn();
+//            console.log("files is not defined or null");
+//        } else if (files.length <= 0) {
+//            completeFn();
+//            console.log("No files found");
+//        } else {
+//            var filesIndex = files.length;
+//            files.forEach(function(file) {
+//                console.log(file);
+//                filesIndex--;
+//                fs.stat(basedir + '/models/' + file, function(err, stats) {
+//                    console.log("Stats =  " + stats);
+//                    if (stats.isFile()) {
+//                        bootModel(app, basedir, file);
+//                    }
+//                    if (filesIndex <= 0) {
+//                        console.log("files Index =  " + filesIndex);
+//                        completeFn();
+//                    }
+//                });
+//            });
+//        }
+//    });
 }
 
 /**
@@ -289,9 +316,10 @@ function bootModels(app, basedir, completeFn) {
  * @param basedir the base directory of the models.
  * @param file the file containing the data model.
  **/
-function bootModel(app, basedir, file) {
+function bootModel(app, basedir, file, completeFn) {
     // console.log("Booting model " + basedir + " - " + file);
     require(basedir + '/models/' + file);
+    completeFn();
 }
 
 // Bootstrap controllers
