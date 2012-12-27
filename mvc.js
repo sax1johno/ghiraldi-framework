@@ -91,10 +91,7 @@ function bootFramework(app, completeFn) {
 
   app.set('views', __dirname + '/app/views'); 
   app.set('view engine', 'jade');
-  
-  // Add a token to the body to prevent Cross Site Request Forgery.
-  app.use(express.csrf());
-  completeFn();
+    completeFn();
 }
 
 /**
@@ -178,6 +175,7 @@ function bootApp(app, completeFn) {
             });
     } catch (e) {
         errors = e;
+        console.log(errors);
         completeFn();
     }
 }
@@ -189,33 +187,34 @@ function bootApp(app, completeFn) {
  **/
 function bootPlugins(app, completeFn) {
     fs.readdir(__dirname + '/app/plugins', function(err, plugins) {
-        if (err) { 
-            // console.log("There was an error: " + err);
+        if (err) {
+            console.log(err);
             completeFn(); 
         } else if (_.isNull(plugins) || _.isUndefined(plugins)) {
-            // console.log("No plugins were found");
+            console.log("No plugins were found");
             completeFn();
         } else {
             // console.log("booting plugins");
             var pluginIndex = plugins.length;
-            // console.log("Plugins.length = " + plugins.length);
-            if (plugins.length === 0) {
-                // console.log("Plugins length was 0 - all done");
-                completeFn();
-            } else {
+            console.log("Plugins.length = " + plugins.length);
+            try {
                 plugins.forEach(function(plugin) {
+                    console.log("Detected plugin: " + plugin);
                     bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
                         bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
                             bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
                                 pluginIndex--;
                                 // console.log("Plugin index = " + pluginIndex);
-                                if (pluginIndex <= 0) {
+                                if (pluginIndex == 0) {
                                     completeFn();
                                 }
                             });
                         });
                     });
-                });
+                });                    
+            } catch (e) {
+                console.log(e);
+                completeFn();
             }
         }
     });
@@ -257,59 +256,32 @@ function bootResources(app, basedir, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootModels(app, basedir, completeFn) {
-      fs.readdir(basedir + '/models', function(err, files){
-        if (err) {
+    fs.readdir(basedir + '/models', function(err, files) {
+        if (err) { 
             completeFn();
+//            console.log("err = " + err);
+        } else if (_.isNull(files) || _.isUndefined(files)) {
+            completeFn();
+//            console.log("files is not defined or null");
+        } else if (files.length <= 0) {
+            completeFn();
+//            console.log("No files found");
         } else {
-            if (!_.isNull(files) && !_.isUndefined(files)) {
-                if (files.length <= 0) {
-                    completeFn();
-                    console.log("no files found");
-                } else {
-//                    console.log("In files");
-                    var filesIndex = files.length;
-                    files.forEach(function(file){
-//                        console.log("files index = " + filesIndex);
-                        filesIndex--;
-                        bootModel(app, basedir, file, function() {
-                            if (filesIndex <= 0) {
-//                                console.log("files Index =  " + filesIndex);
-                                completeFn();
-                            }
-                        });
-                    });
-                }
-            };        
+            var filesIndex = files.length;
+            files.forEach(function(file) {
+//                console.log(file);
+                filesIndex--;
+                fs.stat(basedir + '/models/' + file, function(err, stats) {
+                    if (stats.isFile()) {
+                        bootModel(app, basedir, file);
+                    }
+                    if (filesIndex <= 0) {
+                        completeFn();
+                    }
+                });
+            });
         }
     });
-//    fs.readdir(basedir + '/models', function(err, files) {
-//        if (err) { 
-//            completeFn();
-//            console.log("err = " + err);
-//        } else if (_.isNull(files) || _.isUndefined(files)) {
-//            completeFn();
-//            console.log("files is not defined or null");
-//        } else if (files.length <= 0) {
-//            completeFn();
-//            console.log("No files found");
-//        } else {
-//            var filesIndex = files.length;
-//            files.forEach(function(file) {
-//                console.log(file);
-//                filesIndex--;
-//                fs.stat(basedir + '/models/' + file, function(err, stats) {
-//                    console.log("Stats =  " + stats);
-//                    if (stats.isFile()) {
-//                        bootModel(app, basedir, file);
-//                    }
-//                    if (filesIndex <= 0) {
-//                        console.log("files Index =  " + filesIndex);
-//                        completeFn();
-//                    }
-//                });
-//            });
-//        }
-//    });
 }
 
 /**
@@ -319,10 +291,9 @@ function bootModels(app, basedir, completeFn) {
  * @param basedir the base directory of the models.
  * @param file the file containing the data model.
  **/
-function bootModel(app, basedir, file, completeFn) {
+function bootModel(app, basedir, file) {
     // console.log("Booting model " + basedir + " - " + file);
     require(basedir + '/models/' + file);
-    completeFn();
 }
 
 // Bootstrap controllers
@@ -419,6 +390,7 @@ function bootController(app, basedir, file, completeFn) {
             } else {
                 routepath = basedir + route.route;
             }
+            console.log(routepath);
             var fn = routeAction(routepath, route.method);
             switch(route.verb) {
                 case 'get':
@@ -449,6 +421,12 @@ function bootController(app, basedir, file, completeFn) {
                         app.del(routepath, route.method);
                     }                    
                     break;
+                default:
+                    // The case where no verb has been defined.
+                    if (route.middleware) {
+                        // Augment the current middleware with your middleware.
+                        app.use(routepath, route.middleware);
+                    }
             }
             // console.log('adding route ' + routepath);
             if (actionsIndex <= 0) {
