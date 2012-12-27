@@ -91,7 +91,10 @@ function bootFramework(app, completeFn) {
 
   app.set('views', __dirname + '/app/views'); 
   app.set('view engine', 'jade');
-    completeFn();
+  
+  // Add a token to the body to prevent Cross Site Request Forgery.
+  app.use(express.csrf());
+  completeFn();
 }
 
 /**
