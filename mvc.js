@@ -162,7 +162,6 @@ function bootApp(app, completeFn) {
      console.log("Booting the app");
     var basedir = __dirname + '/app';
     try {
-             console.log("Booted app data");
             bootModels(app, basedir, function() {
                  console.log("Booted app models");
                 bootControllers(app, basedir, function() {
@@ -259,21 +258,23 @@ function bootModels(app, basedir, completeFn) {
     fs.readdir(basedir + '/models', function(err, files) {
         if (err) { 
             completeFn();
-//            console.log("err = " + err);
+            console.log("err = " + err);
         } else if (_.isNull(files) || _.isUndefined(files)) {
             completeFn();
-//            console.log("files is not defined or null");
+            console.log("files is not defined or null");
         } else if (files.length <= 0) {
             completeFn();
-//            console.log("No files found");
+            console.log("No files found");
         } else {
             var filesIndex = files.length;
             files.forEach(function(file) {
-//                console.log(file);
-                filesIndex--;
+                console.log(file);
                 fs.stat(basedir + '/models/' + file, function(err, stats) {
                     if (stats.isFile()) {
                         bootModel(app, basedir, file);
+                        filesIndex--;
+                    } else {
+                        filesIndex--;
                     }
                     if (filesIndex <= 0) {
                         completeFn();
