@@ -17,7 +17,8 @@
 var fs = require('fs'), 
     express = require('express'),
     _ = require('underscore'),
-    locales = require('./locales');
+    locales = require('./locales'),
+    flash = require('connect-flash');
 
 require('coffee-script');
 
@@ -74,6 +75,7 @@ exports.boot = function(app, completeFn){
  **/
 function bootFramework(app, completeFn) {
   // console.log("Booting framework");
+  app.use(flash());
   app.use(express.logger(':method :url :status'));
     
   app.use(express.bodyParser({uploadDir: __dirname + '/app/public/files'}));
