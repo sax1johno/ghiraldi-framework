@@ -72,6 +72,8 @@ exports.boot = function(app, completeFn){
  * These need to be made more dynamic, but for now it works.
  * @param app the express.js app.
  * @param completeFn The function that executes once framework boot is complete.
+ * TODO: Make these configurable, so users can add variables (ie: views) and middleware
+ * (ie: express.bodyParser) from their app without modifying mvc.js.
  **/
 function bootFramework(app, completeFn) {
   // console.log("Booting framework");
