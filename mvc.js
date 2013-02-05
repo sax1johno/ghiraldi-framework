@@ -18,7 +18,9 @@ var fs = require('fs'),
     express = require('express'),
     _ = require('underscore'),
     locales = require('./locales'),
-    flash = require('connect-flash');
+    flash = require('connect-flash'),
+    registry = require('mongoose-schema-registry'),
+    mongoose = require('mongoose');
 
 require('coffee-script');
 
@@ -72,8 +74,6 @@ exports.boot = function(app, completeFn){
  * These need to be made more dynamic, but for now it works.
  * @param app the express.js app.
  * @param completeFn The function that executes once framework boot is complete.
- * TODO: Make these configurable, so users can add variables (ie: views) and middleware
- * (ie: express.bodyParser) from their app without modifying mvc.js.
  **/
 function bootFramework(app, completeFn) {
   // console.log("Booting framework");
@@ -201,20 +201,24 @@ function bootPlugins(app, completeFn) {
             var pluginIndex = plugins.length;
             console.log("Plugins.length = " + plugins.length);
             try {
-                plugins.forEach(function(plugin) {
-                    console.log("Detected plugin: " + plugin);
-                    bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
-                        bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
-                            bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
-                                pluginIndex--;
-                                // console.log("Plugin index = " + pluginIndex);
-                                if (pluginIndex == 0) {
-                                    completeFn();
-                                }
+                if (plugins.length == 0) {
+                    completeFn();
+                } else {
+                    plugins.forEach(function(plugin) {
+                        console.log("Detected plugin: " + plugin);
+                        bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
+                            bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
+                                bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
+                                    pluginIndex--;
+                                    // console.log("Plugin index = " + pluginIndex);
+                                    if (pluginIndex == 0) {
+                                        completeFn();
+                                    }
+                                });
                             });
                         });
-                    });
-                });                    
+                    });                    
+                }                
             } catch (e) {
                 console.log(e);
                 completeFn();
@@ -281,7 +285,17 @@ function bootModels(app, basedir, completeFn) {
                         filesIndex--;
                     }
                     if (filesIndex <= 0) {
-                        completeFn();
+                        registry.getKeys(function(keys) {
+                            var regIndex = keys.size();
+                            _.each(keys, function(key) {
+                                regIndex--;
+                                // Set up the mongoose model.
+                                mongoose.model(key, registry.get(key));
+                                if (regIndex <= 0) {
+                                    completeFn();
+                                }
+                            }) 
+                        });
                     }
                 });
             });
