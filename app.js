@@ -14,14 +14,23 @@
 var express = require('express');
 
 var app = express();
+var simpleLogger = require('ghiraldi-simple-logger');
 
 // Boot the MVC framework and start listening if the boot completes successfully.
-require('./mvc').boot(app, function(bootParams) {
-        // var port = 8888;
-    if (bootParams.status === true) {
-        app.listen(bootParams.port);
-        console.log('ghiraldi app started on port ' + bootParams.port);
-    } else{
-        console.log("ghiraldi app failed to start: " + bootParams.errors);
-    }
+var mvc = require('./mvc');
+
+// An example of getting the bootEventListener - use this to access the events emitted during the boot process.
+var bootEventListener = mvc.events();
+
+app.on('boot', function(port) {
+    simpleLogger.log('info', "port = " + port);
+    console.log("App server listening on port " + port);
+    app.listen(port);
 });
+
+app.on('bootError', function(err) {
+    simpleLogger.log('error', "Failed to boot: " + JSON.stringify(err.stack));
+});
+
+mvc.boot(app);
+

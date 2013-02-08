@@ -20,7 +20,11 @@ var fs = require('fs'),
     locales = require('./locales'),
     flash = require('connect-flash'),
     registry = require('mongoose-schema-registry'),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose'),
+    EventEmitter = require('events').EventEmitter,
+    logger = require('ghiraldi-simple-logger');
+    
+var bootEventEmitter = new EventEmitter();
 
 require('coffee-script');
 
@@ -32,51 +36,59 @@ var status = false,
     errors,
     config;
 
+exports.events = function() {
+    return bootEventEmitter;
+};
+
 /**
  * The main boot function.  This boots the application and catches all startup errors.
  * @param app, the app provided by express.js
- * @param completeFn the method to be executed when the bootstrap is completed.
  * @author John O'Connor
  **/
-exports.boot = function(app, completeFn){
-    try {
-        bootFramework(app, function() {
-            console.log("Framework booted");
-            bootConfig(app, function() {
-                console.log("config booted");
-                bootData(app, function() {
-                    console.log("data booted");
-                    bootPlugins(app, function() {
-                         console.log("Plugins booted");
-                        bootApp(app, function() {
-                            console.log("Done booting application");
-                            completeFn({
-                                status: true,
-                                port: port
-                            });
-                        });
-                    });
-                });
-            });
+exports.boot = function(app){
+//    try {
+        bootEventEmitter.on('bootFramework', function() {
+            bootConfig(app);
         });
-    } catch (e) {
-        status = false;
-        errors = e;
-        completeFn({
-            status: false,
-            errors: e
+        
+        bootEventEmitter.on('bootConfig', function() {
+            bootData(app);
         });
-    }
+        
+        bootEventEmitter.on('bootData', function() {
+            bootPlugins(app);
+        });
+        
+        bootEventEmitter.on('bootPlugins', function() {
+            bootApp(app);
+        });
+        
+        bootEventEmitter.on('bootApp', function() {
+            registerModels(app);
+        });
+        
+        bootEventEmitter.on('registerModels', function() {
+            app.emit('boot', port);
+        });
+        
+        bootEventEmitter.on('error', function(errors) {
+            bootEventEmitter.emit('bootError', errors)
+        })
+        
+        bootFramework(app);
+        
+//    } catch (e) {
+//        app.emit('bootError', e)
+//    }
 };
 
 /**
  * Sets up the express app, with the default ghiraldi app middleware and base settings.
  * These need to be made more dynamic, but for now it works.
  * @param app the express.js app.
- * @param completeFn The function that executes once framework boot is complete.
  **/
-function bootFramework(app, completeFn) {
-  // console.log("Booting framework");
+function bootFramework(app) {
+   logger.log('trace', "Booting framework");
   app.use(flash());
   app.use(express.logger(':method :url :status'));
     
@@ -95,15 +107,15 @@ function bootFramework(app, completeFn) {
 
   app.set('views', __dirname + '/app/views'); 
   app.set('view engine', 'jade');
-    completeFn();
+    bootEventEmitter.emit('bootFramework');
 }
 
 /**
  * Reads the config.json file and performs additional dynamic app configuration.
  * @param app the express.js application.
- * @param completeFn a function that executes upon completion of the boot process.
  **/
-function bootConfig(app, completeFn) {
+function bootConfig(app) {
+   logger.log('trace', "Booting application configuration");    
   config = require(__dirname + '/app/config.json');
   
   var environment = process.env.NODE_ENV;
@@ -154,7 +166,7 @@ function bootConfig(app, completeFn) {
 //      // some static view helpers
 //      app.helpers(require(__dirname + appSettings.helpers));
 //  }
-  completeFn();
+    bootEventEmitter.emit('bootConfig');
 }
 
 /**
@@ -162,24 +174,23 @@ function bootConfig(app, completeFn) {
  * @param app a reference to the express.js application.
  * @param completeFn a function to be executed when booting is complete.
  **/
-function bootApp(app, completeFn) {
-     console.log("Booting the app");
+function bootApp(app) {
+   logger.log('trace', "Booting the app");
     var basedir = __dirname + '/app';
     try {
             bootModels(app, basedir, function() {
-                 console.log("Booted app models");
+                logger.log('trace', "Booted app models");
                 bootControllers(app, basedir, function() {
-                     console.log("Booted app controllers");
+                    logger.log('trace', "Booted app controllers");
                     bootResources(app, basedir, function() {
-                         console.log("Booted app resources");
-                        completeFn();
+                        logger.log('trace', "Booted app resources");
+                        bootEventEmitter.emit('bootApp');
                     });
                 });
             });
     } catch (e) {
-        errors = e;
-        console.log(errors);
-        completeFn();
+        logger.log("error", e.stack);
+        bootEventEmitter.emit('error', e);
     }
 }
 
@@ -189,30 +200,29 @@ function bootApp(app, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootPlugins(app, completeFn) {
+   logger.log('trace', "Booting the plugins");    
     fs.readdir(__dirname + '/app/plugins', function(err, plugins) {
         if (err) {
-            console.log(err);
-            completeFn(); 
+            logger.log("warning", err);
         } else if (_.isNull(plugins) || _.isUndefined(plugins)) {
-            console.log("No plugins were found");
-            completeFn();
+            logger.log('debug', "No plugins found");    
         } else {
             // console.log("booting plugins");
             var pluginIndex = plugins.length;
-            console.log("Plugins.length = " + plugins.length);
+            logger.log('trace', "Plugins.length = " + plugins.length);
             try {
                 if (plugins.length == 0) {
-                    completeFn();
+                    bootEventEmitter.emit('bootPlugins');
                 } else {
                     plugins.forEach(function(plugin) {
-                        console.log("Detected plugin: " + plugin);
+                        logger.log('trace', "Detected plugin: " + plugin);
                         bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
                             bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
                                 bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
                                     pluginIndex--;
                                     // console.log("Plugin index = " + pluginIndex);
                                     if (pluginIndex == 0) {
-                                        completeFn();
+                                        bootEventEmitter.emit('bootPlugins');
                                     }
                                 });
                             });
@@ -220,8 +230,8 @@ function bootPlugins(app, completeFn) {
                     });                    
                 }                
             } catch (e) {
-                console.log(e);
-                completeFn();
+                logger.log('warning', e.stack);
+                bootEventEmitter.emit('bootPlugins');
             }
         }
     });
@@ -233,6 +243,7 @@ function bootPlugins(app, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootResources(app, basedir, completeFn) {
+    logger.log('trace', 'Booting resoureces');
     if (locales === null || locales === undefined) {
         locales = {};
     }
@@ -251,7 +262,7 @@ function bootResources(app, basedir, completeFn) {
                 }
             });
         } else {
-            completeFn();
+            bootEventEmitter.emit('bootResources');        
         }
     });
 }
@@ -263,16 +274,17 @@ function bootResources(app, basedir, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootModels(app, basedir, completeFn) {
+    logger.log('trace', 'booting models');
     fs.readdir(basedir + '/models', function(err, files) {
         if (err) { 
             completeFn();
-            console.log("err = " + err);
+            logger.log('warning', err);
         } else if (_.isNull(files) || _.isUndefined(files)) {
             completeFn();
-            console.log("files is not defined or null");
+            logger.log('warning', "No models were found.");
         } else if (files.length <= 0) {
             completeFn();
-            console.log("No files found");
+            logger.log('warning', "No models were found.");
         } else {
             var filesIndex = files.length;
             files.forEach(function(file) {
@@ -285,17 +297,18 @@ function bootModels(app, basedir, completeFn) {
                         filesIndex--;
                     }
                     if (filesIndex <= 0) {
-                        registry.getKeys(function(keys) {
-                            var regIndex = keys.size();
-                            _.each(keys, function(key) {
-                                regIndex--;
-                                // Set up the mongoose model.
-                                mongoose.model(key, registry.get(key));
-                                if (regIndex <= 0) {
-                                    completeFn();
-                                }
-                            }) 
-                        });
+                        completeFn();
+//                        registry.getKeys(function(keys) {
+//                            var regIndex = keys.size();
+//                            _.each(keys, function(key) {
+//                                regIndex--;
+//                                // Set up the mongoose model.
+//                                mongoose.model(key, registry.get(key));
+//                                if (regIndex <= 0) {
+//                                    completeFn();
+//                                }
+//                            }) 
+//                        });
                     }
                 });
             });
@@ -312,7 +325,24 @@ function bootModels(app, basedir, completeFn) {
  **/
 function bootModel(app, basedir, file) {
     // console.log("Booting model " + basedir + " - " + file);
-    require(basedir + '/models/' + file);
+    var schema = require(basedir + '/models/' + file);
+    registry.add(file, schema);
+}
+
+function registerModels(app) {
+    logger.log('trace', 'Registering models');
+    registry.getKeys(function(keys) {
+        if (_.isEmpty(keys)) {
+            bootEventEmitter.emit('registerModels');
+        } else {
+            _.each(keys, function(key, index) {
+                mongoose.model(key,  registry.get(key));
+                if (index == keys.length() - 1) {
+                    bootEventEmitter.emit('registerModels');
+                }
+            });
+        }
+    });
 }
 
 // Bootstrap controllers
@@ -324,6 +354,7 @@ function bootModel(app, basedir, file) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootControllers(app, basedir, completeFn) {
+    logger.log('trace', 'Booting controllers');
   fs.readdir(basedir + '/controllers', function(err, files){
         if (err) {
             completeFn();
@@ -331,7 +362,7 @@ function bootControllers(app, basedir, completeFn) {
             if (!_.isNull(files) && !_.isUndefined(files)) {
                 if (files.length <= 0) {
                     completeFn();
-                    console.log("no files found");
+                    logger.log('warning', "no controllers found");
                 } else {
                     var filesIndex = files.length;
                     files.forEach(function(file){
@@ -354,6 +385,7 @@ function bootControllers(app, basedir, completeFn) {
  * @param completeFn a function to be executed when booting is complete.
  **/
 function bootData(app, completeFn) {
+    logger.log("trace", "booting data");
     if (!_.isUndefined(config.data) && !_.isNull(config.data)) {
         if (config.data.provider === 'mongodb') {
             var mongoose = require('mongoose');
@@ -363,19 +395,13 @@ function bootData(app, completeFn) {
                     connectionString += config.data.username + ":" + config.data.password + "@"
                 }
                 connectionString += config.data.host + "/" + config.data.database;
+                logger.log("trace", "connection string = " + connectionString);
                 mongoose.connect(connectionString);
     //            console.log("database = " + connectionString);
-                completeFn();
-            } else {
-                completeFn();                
             }
-        } else {
-            // console.log("Provider " + config.data.provider + " not supported");
-            completeFn();
         }
-    } else {
-        completeFn();
     }
+    bootEventEmitter.emit('bootData');                
 }
 
 /**
@@ -385,7 +411,7 @@ function bootData(app, completeFn) {
  * @param file the controller file
  **/
 function bootController(app, basedir, file, completeFn) {
-  // console.log("Booting controller " + basedir + " - " + file);
+  logger.log('trace', "Booting controller " + basedir + " - " + file);
   var actions = require(basedir + '/controllers/' + file);
   if (!_.has(actions, 'routes')) {
       completeFn();
@@ -409,7 +435,7 @@ function bootController(app, basedir, file, completeFn) {
             } else {
                 routepath = basedir + route.route;
             }
-            console.log(routepath);
+            logger.log('trace', 'route path = ' + routepath);
             var fn = routeAction(routepath, route.method);
             switch(route.verb) {
                 case 'get':
