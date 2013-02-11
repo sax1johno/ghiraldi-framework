@@ -329,6 +329,12 @@ function bootModel(app, basedir, file) {
     registry.add(file, schema);
 }
 
+/**
+ * Registers the models with mongoose.  This may eventually change to allow other data storage adapters.
+ * This method is called at the end of booting all of the model objects so that models can be progressively
+ * enhanced through other plugins and a developers application.
+ * @param app the application server.
+ **/
 function registerModels(app) {
     logger.log('trace', 'Registering models');
     registry.getKeys(function(keys) {
