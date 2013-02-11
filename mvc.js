@@ -22,7 +22,8 @@ var fs = require('fs'),
     registry = require('mongoose-schema-registry'),
     mongoose = require('mongoose'),
     EventEmitter = require('events').EventEmitter,
-    logger = require('ghiraldi-simple-logger');
+    logger = require('ghiraldi-simple-logger'),
+    controllers = [];
     
 var bootEventEmitter = new EventEmitter();
 
@@ -39,6 +40,10 @@ var status = false,
 exports.events = function() {
     return bootEventEmitter;
 };
+
+registry.on('add', function(tag, schema) {
+    logger.log('trace', "Schema entry added: " + tag + " " + JSON.stringify(schema));
+})
 
 /**
  * The main boot function.  This boots the application and catches all startup errors.
@@ -68,6 +73,10 @@ exports.boot = function(app){
         });
         
         bootEventEmitter.on('registerModels', function() {
+            registerControllers(app);
+        });
+        
+        bootEventEmitter.on('registerControllers', function() {
             app.emit('boot', port);
         });
         
@@ -288,9 +297,9 @@ function bootModels(app, basedir, completeFn) {
         } else {
             var filesIndex = files.length;
             files.forEach(function(file) {
-                logger.log('trace', file);
                 fs.stat(basedir + '/models/' + file, function(err, stats) {
                     if (stats.isFile()) {
+                        logger.log('trace', file);
                         bootModel(app, basedir, file);
                         filesIndex--;
                     } else {
@@ -326,35 +335,32 @@ function bootModels(app, basedir, completeFn) {
 function bootModel(app, basedir, file) {
     // console.log("Booting model " + basedir + " - " + file);
     var schema = require(basedir + '/models/' + file);
-    registry.add(file, schema);
+    var tag = file.replace(/\..*/, '');
+    logger.log('trace', tag + ' = ' + JSON.stringify(schema));
+    registry.add(tag, schema);
 }
 
-/**
- * Registers the models with mongoose.  This may eventually change to allow other data storage adapters.
- * This method is called at the end of booting all of the model objects so that models can be progressively
- * enhanced through other plugins and a developers application.
- * @param app the application server.
- **/
 function registerModels(app) {
     logger.log('trace', 'Registering models');
-    registry.getKeys(function(keys) {
-        if (_.isEmpty(keys)) {
-            bootEventEmitter.emit('registerModels');
-        } else {
-            _.each(keys, function(key, index) {
-                mongoose.model(key,  registry.get(key));
-                if (index == keys.length() - 1) {
-                    bootEventEmitter.emit('registerModels');
-                }
-            });
-        }
-    });
+    var keys = registry.getKeys();
+    logger.log('trace', "keys = " + JSON.stringify(keys));
+    if (_.isEmpty(keys)) {
+        bootEventEmitter.emit('registerModels');
+    } else {
+        _.each(keys, function(key, index, list) {
+            mongoose.model(key,  registry.get(key));
+            if (index == _.size(list) - 1) {
+                bootEventEmitter.emit('registerModels');
+            }
+        });
+    }
 }
 
 // Bootstrap controllers
 
 /**
  * Boot up the framework with the controllers found in basedir.
+ * For now, this function will add the controllers to the array, and controllers will actually be included in the framework at the end.
  * @param app the application server.
  * @param basedir the base directory that contains the controllers
  * @param completeFn a function to be executed when booting is complete.
@@ -373,16 +379,51 @@ function bootControllers(app, basedir, completeFn) {
                     var filesIndex = files.length;
                     files.forEach(function(file){
                         filesIndex--;
-                        bootController(app, basedir, file, function() {
-                            if (filesIndex <= 0) {
-                                completeFn();
-                            }
-                        });
+                        controllers.push({'basedir': basedir, 'file': file});
+                        completeFn();
+//                        bootController(app, basedir, file, function() {
+//                            if (filesIndex <= 0) {
+//                                completeFn();
+//                            }
+//                        });
                     });
                 }
             };        
         }
     });
+}
+
+/**
+ * Registers the previously booted controllers.  This runs once all of the controllers have been
+ * found and models have been registered.
+ * @param app the application context
+ * @param completeFn a method that is executed once the registration is complete
+ **/
+function registerControllers(app, completeFn) {
+    if (!_.isUndefined(controllers) && !_.isNull(controllers) && !_.isEmpty(controllers)) {
+        _.each(controllers, function(controller, index, list) {
+            logger.log('trace', 'Registering controller ' + controller.basedir + '/' + controller.file);
+            bootController(app, controller.basedir, controller.file, function() {
+                logger.log('trace', 'index = ' + index);
+                logger.log('trace', 'list = ' + JSON.stringify(list));
+                if (index == _.size(list) - 1) {
+                    if (!_.isUndefined(completeFn) && !_.isNull(completeFn)) {
+                        completeFn();
+                    }
+                    bootEventEmitter.emit('registerControllers');                        
+                }
+            });
+        });
+    } else {
+        completeFn();
+        bootEventEmitter.emit('registerControllers');
+    }
+
+//                        bootController(app, basedir, file, function() {
+//                            if (filesIndex <= 0) {
+//                                completeFn();
+//                            }
+//                        });    
 }
 
 /**
@@ -403,24 +444,30 @@ function bootData(app, completeFn) {
                 connectionString += config.data.host + "/" + config.data.database;
                 logger.log("trace", "connection string = " + connectionString);
                 mongoose.connect(connectionString);
-    //            console.log("database = " + connectionString);
             }
+        } else {
+            logger.log('warning', 'Incompatible data provider, or no data provider was found.');
         }
+    } else {
+        logger.log('warning', 'No data source configuration was found.')
     }
-    bootEventEmitter.emit('bootData');                
+    bootEventEmitter.emit('bootData');
 }
 
 /**
  * Boot a controller into the framework.
  * @param app the application server
- * @basedir the base directory for the controllers - used to distinguish plugins from app.
+ * @basedir the base directory for the controllers
+ * - used to distinguish plugins from app.
  * @param file the controller file
  **/
 function bootController(app, basedir, file, completeFn) {
   logger.log('trace', "Booting controller " + basedir + " - " + file);
   var actions = require(basedir + '/controllers/' + file);
   if (!_.has(actions, 'routes')) {
-      completeFn();
+      if (!_.isUndefined(completeFn) && !_.isNull(completeFn)) {
+        completeFn();
+      }
       return;
   }
   Object.keys(actions).map(function(action){

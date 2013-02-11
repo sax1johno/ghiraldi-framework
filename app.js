@@ -16,6 +16,9 @@ var express = require('express');
 var app = express();
 var simpleLogger = require('ghiraldi-simple-logger');
 
+// Create a special framework-level log to show important messages from the framework.
+simpleLogger.LOGLEVELS['Framework message'] = 101;
+
 // Boot the MVC framework and start listening if the boot completes successfully.
 var mvc = require('./mvc');
 
@@ -24,7 +27,7 @@ var bootEventListener = mvc.events();
 
 app.on('boot', function(port) {
     simpleLogger.log('info', "port = " + port);
-    console.log("App server listening on port " + port);
+    simpleLogger.log('Framework message', "App server listening on port " + port);
     app.listen(port);
 });
 
@@ -33,4 +36,3 @@ app.on('bootError', function(err) {
 });
 
 mvc.boot(app);
-
