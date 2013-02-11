@@ -288,7 +288,7 @@ function bootModels(app, basedir, completeFn) {
         } else {
             var filesIndex = files.length;
             files.forEach(function(file) {
-                console.log(file);
+                logger.log('trace', file);
                 fs.stat(basedir + '/models/' + file, function(err, stats) {
                     if (stats.isFile()) {
                         bootModel(app, basedir, file);
