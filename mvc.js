@@ -216,28 +216,33 @@ function bootPlugins(app, completeFn) {
         } else if (_.isNull(plugins) || _.isUndefined(plugins)) {
             logger.log('debug', "No plugins found");    
         } else {
-            // console.log("booting plugins");
-            var pluginIndex = plugins.length;
-            logger.log('trace', "Plugins.length = " + plugins.length);
             try {
                 if (plugins.length == 0) {
                     bootEventEmitter.emit('bootPlugins');
                 } else {
-                    plugins.forEach(function(plugin) {
-                        logger.log('trace', "Detected plugin: " + plugin);
-                        bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
-                            bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
-                                bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
-                                    pluginIndex--;
-                                    // console.log("Plugin index = " + pluginIndex);
-                                    if (pluginIndex == 0) {
-                                        bootEventEmitter.emit('bootPlugins');
-                                    }
-                                });
-                            });
+                    var index = 0;
+                    var bootThesePlugins = function() {
+                        bootPlugin(app, plugins[index], function() {
+                            logger.log('trace', index);
+                            if (index == _.size(plugins) - 1) {
+                                bootEventEmitter.emit('bootPlugins');
+                            } else {
+                                index++;
+                                bootThesePlugins();
+                            }
                         });
-                    });                    
-                }                
+                    };
+                    bootThesePlugins(index);
+//                    bootPlugin(app, plugins[index], function() {
+//                        logger.log('trace', index);
+//                        if (index == _.size(plugins) - 1) {
+//                            bootEventEmitter.emit('bootPlugins');
+//                        } else {
+//                            index++;
+//                            bootPlugin(app, plugins[index], this);
+//                        }
+//                    });
+                }
             } catch (e) {
                 logger.log('warning', e.stack);
                 bootEventEmitter.emit('bootPlugins');
@@ -246,7 +251,25 @@ function bootPlugins(app, completeFn) {
     });
 }
 
-/** Boots up the framework with the resources for this project.
+/**
+ * Boots up a plugin.
+ * @param app the application server.
+ * @param plugin the plugin
+ * @param completeFn a function to be executed when booting is complete.
+ **/
+function bootPlugin(app, plugin, completeFn) {
+    logger.log('trace', "Detected plugin: " + plugin);
+    bootModels(app, __dirname + '/app/plugins/' + plugin, function() {
+        bootResources(app, __dirname + '/app/plugins/' + plugin, function() {
+            bootControllers(app, __dirname + '/app/plugins/' + plugin, function() {
+                completeFn();
+            });
+        });
+    });
+}
+
+/** 
+ * Boots up the framework with the resources for this project.
  * @param app the application server.
  * @param basedir the base directory for the resources.
  * @param completeFn a function to be executed when booting is complete.
@@ -300,24 +323,17 @@ function bootModels(app, basedir, completeFn) {
                 fs.stat(basedir + '/models/' + file, function(err, stats) {
                     if (stats.isFile()) {
                         logger.log('trace', file);
-                        bootModel(app, basedir, file);
-                        filesIndex--;
+                        bootModel(app, basedir, file, function() {
+                            filesIndex--;
+                            if (filesIndex <= 0) {
+                                completeFn();
+                            }
+                        });
                     } else {
                         filesIndex--;
-                    }
-                    if (filesIndex <= 0) {
-                        completeFn();
-//                        registry.getKeys(function(keys) {
-//                            var regIndex = keys.size();
-//                            _.each(keys, function(key) {
-//                                regIndex--;
-//                                // Set up the mongoose model.
-//                                mongoose.model(key, registry.get(key));
-//                                if (regIndex <= 0) {
-//                                    completeFn();
-//                                }
-//                            }) 
-//                        });
+                        if (filesIndex <= 0) {
+                            completeFn();
+                        }
                     }
                 });
             });
@@ -332,12 +348,17 @@ function bootModels(app, basedir, completeFn) {
  * @param basedir the base directory of the models.
  * @param file the file containing the data model.
  **/
-function bootModel(app, basedir, file) {
-    // console.log("Booting model " + basedir + " - " + file);
-    var schema = require(basedir + '/models/' + file);
-    var tag = file.replace(/\..*/, '');
-    logger.log('trace', tag + ' = ' + JSON.stringify(schema));
-    registry.add(tag, schema);
+function bootModel(app, basedir, file, completeFn) {
+    var modelObject = require(basedir + '/models/' + file);
+    var keys = _.keys(modelObject);
+    var keysIndex = _.size(keys);
+    _.each(modelObject, function(schema, tag, list) {
+        keysIndex--;
+        registry.add(tag, modelObject[tag]);
+        if (keysIndex <= 0) {
+            completeFn();
+        }
+    });
 }
 
 function registerModels(app) {
@@ -402,10 +423,7 @@ function bootControllers(app, basedir, completeFn) {
 function registerControllers(app, completeFn) {
     if (!_.isUndefined(controllers) && !_.isNull(controllers) && !_.isEmpty(controllers)) {
         _.each(controllers, function(controller, index, list) {
-            logger.log('trace', 'Registering controller ' + controller.basedir + '/' + controller.file);
             bootController(app, controller.basedir, controller.file, function() {
-                logger.log('trace', 'index = ' + index);
-                logger.log('trace', 'list = ' + JSON.stringify(list));
                 if (index == _.size(list) - 1) {
                     if (!_.isUndefined(completeFn) && !_.isNull(completeFn)) {
                         completeFn();
