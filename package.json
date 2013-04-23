@@ -30,6 +30,40 @@
     "mongodb": ">=1.1.3",
     "connect-mongodb": ">=1.1.5",
     "connect-flash": "0.1.0",
-    "ghiraldi-simple-logger": "*"
+    "ghiraldi-simple-logger": "*",
+    "ghiraldi-plugin-registry": "*",
+    "q": "*"
+  },
+  "ghiraldi": {
+    "pluginsEnabled": [
+    ],
+    "environment": "development",
+    "production": {
+        "data": {
+            "provider": "mongodb",
+            "host": "localhost",
+            "database": "data",
+            "username": "changeme",
+            "password": "changeme"
+        }
+    },
+    "development": {
+        "data": {
+            "provider": "mongodb",
+            "host": "localhost",
+            "database": "data",
+            "username": "changeme",
+            "password": "changeme"
+        },
+        "appSettings": {
+            "uploadDir": "/public/files",
+            "publicDir": "/public",
+            "sessionSecretSalt": "KEYBOARD_CAT",
+            "viewsDir": "/app",
+            "viewEngine": "jade"
+        }
+    },
+    "staging": {
+    }
   }
 }
